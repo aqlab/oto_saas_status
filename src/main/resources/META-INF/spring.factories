@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.oto.saas.autoconfig.BlmEndPointAutoConfig,com.oto.saas.autoconfig.MongoIndicatorAutoConfig,\
+com.oto.saas.autoconfig.RabbitIndicatorAutoConfig,com.oto.saas.autoconfig.RedisIndicatorAutoConfig
