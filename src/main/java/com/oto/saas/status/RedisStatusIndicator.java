@@ -20,9 +20,8 @@ public class RedisStatusIndicator extends AbstracStatusIndicator {
         boolean flag = false;
         try {
             flag = jedisPool.getResource().isConnected();
-            System.out.println("是否连接:" + flag);
         } catch (Exception e) {
-            System.err.print(e.getMessage());
+            System.err.print("redis 连接失败: "+e.getMessage());
             return false;
         }
         return flag;
