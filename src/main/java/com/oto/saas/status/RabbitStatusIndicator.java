@@ -27,7 +27,7 @@ public class RabbitStatusIndicator extends AbstracStatusIndicator {
             flag = connection.isOpen();
             connection.close();
         } catch (Exception e) {
-            System.err.print(e.getMessage());
+            System.err.println(e.getMessage());
             return false;
         }
         return flag;

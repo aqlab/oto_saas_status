@@ -25,7 +25,7 @@ public class MongoStatusIndicator extends AbstracStatusIndicator {
             result = mongoTemplate.executeCommand("{ buildInfo: 1 }");
             flag = result.ok();
         } catch (Exception e) {
-            System.err.print(e.getMessage());
+            System.err.println(e.getMessage());
             return false;
         }
         return flag;

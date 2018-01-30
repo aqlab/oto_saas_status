@@ -6,6 +6,7 @@ import com.oto.saas.status.MongoStatusIndicator;
 import com.oto.saas.status.RabbitStatusIndicator;
 import com.oto.saas.status.RedisStatusIndicator;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 import org.springframework.jca.context.SpringContextResourceAdapter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
@@ -27,23 +28,28 @@ import java.util.Map;
  * @date: 2018/1/24 上午11:21
  */
 public class SaasGateWayTools {
-    private static final String SUCCESS = "online";
-    private static final String FAIL = "fail";
     private static ApplicationContext webApplicationContext;
     private static Map<String, Object> appConfig;
     private static HealthCheckProperties healthCheckProperties;
+    private static AbstractCheckChain checkChain;
 
     public static void setWebApplicationContext(ApplicationContext applicationContext, Map<String, Object> config, HealthCheckProperties healthProperties) {
         webApplicationContext = applicationContext;
         appConfig = config;
         healthCheckProperties = healthProperties;
+        initDefaultCheckChain();
+    }
+    //如果扩展这个检查链路? 只需要在项目启动时候,摄入指定的检查链路,即可
+    private static void initDefaultCheckChain(){
+        checkChain=new MongoCheckImpl(new RabbitCheckImpl(new RedisCheckImpl()));
     }
 
-    private static String formatStatus(boolean flag) {
-        if (flag) {
-            return SUCCESS;
-        }
-        return FAIL;
+    public static void updateCheckChain(AbstractCheckChain extCheckChain){
+        checkChain=extCheckChain;
+    }
+
+    public static void addCheckChain(AbstractCheckChain nextCheckChain){
+        checkChain.setNextCheckChain(nextCheckChain);
     }
 
     public static Map<String, Object> status() {
@@ -52,42 +58,10 @@ public class SaasGateWayTools {
         appStatus.put(BlmConfig.CUSTOMER_APP_NAME, appConfig.getOrDefault(BlmConfig.CUSTOMER_APP_NAME, "系统未定义"));
         appStatus.put("port", getLoopHost()+":"+appConfig.get(BlmConfig.CUSTOMER_APP_PORT));
         appStatus.put("active", appConfig.get(BlmConfig.CUSTOMER_APP_ACTIVE));
-        chainCheck(appStatus);
+        checkChain.checkChain(appStatus);
         return appStatus;
     }
 
-    private static void chainCheck(Map<String, Object> appConfig) {
-        checkMongo(appConfig);
-        checkRabbit(appConfig);
-        checkRedis(appConfig);
-    }
-
-    private static void checkRedis(Map<String, Object> appConfig) {
-        if (!webApplicationContext.containsBean("blm_redisStatusIndicator")) {
-            appConfig.put("redis", "-");
-            return;
-        }
-        RedisStatusIndicator redisStatusIndicator = (RedisStatusIndicator) webApplicationContext.getBean("blm_redisStatusIndicator");
-        appConfig.put("redis", formatStatus(redisStatusIndicator.status()));
-    }
-
-    private static void checkMongo(Map<String, Object> appConfig) {
-        if (!webApplicationContext.containsBean("blm_mongoStatusIndicator")) {
-            appConfig.put("mongo", "-");
-            return;
-        }
-        MongoStatusIndicator mongoStatusIndicator = (MongoStatusIndicator) webApplicationContext.getBean("blm_mongoStatusIndicator");
-        appConfig.put("mongo", formatStatus(mongoStatusIndicator.status()));
-    }
-
-    private static void checkRabbit(Map<String, Object> appConfig) {
-        if (!webApplicationContext.containsBean("blm_rabbitStatusIndicator")) {
-            appConfig.put("rabbit", "-");
-            return;
-        }
-        RabbitStatusIndicator rabbitStatusIndicator = (RabbitStatusIndicator) webApplicationContext.getBean("blm_rabbitStatusIndicator");
-        appConfig.put("rabbit", formatStatus(rabbitStatusIndicator.status()));
-    }
 
 
     private static String getLoopHost() {
@@ -121,5 +95,13 @@ public class SaasGateWayTools {
         }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(timeFormat);
         return LocalDateTime.now().format(formatter).toString();
+    }
+
+    public static ApplicationContext getWebApplicationContext() {
+        return webApplicationContext;
+    }
+
+    public static void setWebApplicationContext(ApplicationContext webApplicationContext) {
+        SaasGateWayTools.webApplicationContext = webApplicationContext;
     }
 }
