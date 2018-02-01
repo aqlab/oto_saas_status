@@ -39,16 +39,17 @@ public class SaasGateWayTools {
         healthCheckProperties = healthProperties;
         initDefaultCheckChain();
     }
+
     //如果扩展这个检查链路? 只需要在项目启动时候,摄入指定的检查链路,即可
-    private static void initDefaultCheckChain(){
-        checkChain=new MongoCheckImpl(new RabbitCheckImpl(new RedisCheckImpl()));
+    private static void initDefaultCheckChain() {
+        checkChain = new MongoCheckImpl(new RabbitCheckImpl(new RedisCheckImpl()));
     }
 
-    public static void updateCheckChain(AbstractCheckChain extCheckChain){
-        checkChain=extCheckChain;
+    public static void updateCheckChain(AbstractCheckChain extCheckChain) {
+        checkChain = extCheckChain;
     }
 
-    public static void addCheckChain(AbstractCheckChain nextCheckChain){
+    public static void addCheckChain(AbstractCheckChain nextCheckChain) {
         checkChain.setNextCheckChain(nextCheckChain);
     }
 
@@ -56,12 +57,12 @@ public class SaasGateWayTools {
         Map<String, Object> appStatus = new LinkedHashMap<>();
         appStatus.put("time", time());
         appStatus.put(BlmConfig.CUSTOMER_APP_NAME, appConfig.getOrDefault(BlmConfig.CUSTOMER_APP_NAME, "系统未定义"));
-        appStatus.put("port", getLoopHost()+":"+appConfig.get(BlmConfig.CUSTOMER_APP_PORT));
+        appStatus.put("host", getLoopHost());
+        appStatus.put("port", appConfig.get(BlmConfig.CUSTOMER_APP_PORT));
         appStatus.put("active", appConfig.get(BlmConfig.CUSTOMER_APP_ACTIVE));
         checkChain.checkChain(appStatus);
         return appStatus;
     }
-
 
 
     private static String getLoopHost() {

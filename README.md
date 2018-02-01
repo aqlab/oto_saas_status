@@ -15,3 +15,44 @@
 #### 技术实现方式:
   ● 1. 引入spring-boot-autoconfigure 自动配置
   ● 2. 引入spring-boot-actuator  使用EndPoint 定制暴露给网关的扫描地址
+
+
+#### 扩展演示
+
+```java
+  public class OtoSaasApplication{
+    public static void main(String[] args) {
+         ConfigurableApplicationContext applicationContext = SpringApplication.run(OtoSaasApplication.class, args);
+                SaasGateWayTools.addCheckChain(new AbstractCheckChain
+                        (){
+                    @Override
+                    public void Check(Map<String, Object> map) {
+                        map.put("customerInfo","customerInfo");
+                        map.put("customerInfo2","customerInfo2");
+                    }
+                }); 
+      }
+  }
+
+```
+
+```json
+//liuxin@MacBook-Pro  ~  http get http://127.0.0.1:32028/blm_status
+//HTTP/1.1 200
+//Content-Type: application/vnd.spring-boot.actuator.v1+json;charset=UTF-8
+//Date: Tue, 30 Jan 2018 09:04:50 GMT
+//Transfer-Encoding: chunked
+//X-Application-Context: oto_saas_bank_pay:dev:32028
+
+{
+    "active": "dev",
+    "customerInfo": "customerInfo",
+    "customerInfo2": "customerInfo2",
+    "mongo": "online",
+    "name": "oto_saas_bank_pay",
+    "port": "192.168.18.135:32028",
+    "rabbit": "fail",
+    "redis": "fail",
+    "time": "2018-01-30 17:04:50"
+}
+```

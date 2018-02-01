@@ -25,8 +25,24 @@ public abstract class AbstractCheckChain {
         return nextCheckChain;
     }
 
-    public void setNextCheckChain(AbstractCheckChain nextCheckChain) {
-        this.nextCheckChain = nextCheckChain;
+    public void setNextCheckChain(AbstractCheckChain endExtCheckChain) {
+
+        setEndCheckChain(this.nextCheckChain, endExtCheckChain, false);
+    }
+
+    public boolean setEndCheckChain(AbstractCheckChain nextCheckChain, AbstractCheckChain endExtCheckChain, boolean flag) {
+        boolean Outflag = false;
+        if (nextCheckChain == null) {
+            Outflag = true;
+        }
+        if (nextCheckChain != null) {
+            Outflag = setEndCheckChain(nextCheckChain.nextCheckChain, endExtCheckChain, Outflag);
+            if (Outflag) {
+                nextCheckChain.nextCheckChain = endExtCheckChain;
+                Outflag = false;
+            }
+        }
+        return Outflag;
     }
 
     protected AbstractCheckChain(AbstractCheckChain nextCheckChain) {
@@ -51,10 +67,10 @@ public abstract class AbstractCheckChain {
     }
 
     protected boolean containsBean(String beanName) {
-       return webApplicationContext.containsBean(beanName);
+        return webApplicationContext.containsBean(beanName);
     }
 
-    protected Object getBean(String beanName){
+    protected Object getBean(String beanName) {
         return webApplicationContext.getBean(beanName);
     }
 }
